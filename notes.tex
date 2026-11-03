@@ -1,0 +1,331 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=0.42in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage{framed}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{0.25in}
+\setlist[itemize]{leftmargin=*,nosep}
+\setlist[enumerate]{leftmargin=*,nosep}
+\titleformat{\section}{\large\bfseries\color{blue!60!black}}{}{0pt}{}[\hrule]
+\titlespacing*{\section}{0pt}{4pt}{2pt}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{3pt}{1pt}
+\newcommand{\cmd}[1]{\texttt{\small #1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+\begin{center}
+  {\Large\bfseries ICPC NENA Quick Reference}\\[-2pt]
+  {\small Bash, C++, Java, graph theory, and contest workflow}
+\end{center}
+
+\begin{multicols}{2}
+
+\section{Bash basics}
+\subsection{Navigation and files}
+\begin{itemize}
+  \item \cmd{pwd} --- print the current directory
+  \item \cmd{ls -la}, \cmd{cd path}, \cmd{cd ..}, \cmd{cd -}
+  \item \cmd{mkdir -p dir}, \cmd{touch file}
+  \item \cmd{cp -r src dest}, \cmd{mv old new}
+  \item \cmd{rm file}, \cmd{rm -r dir} \textit{(check the path first)}
+  \item \cmd{cat file}, \cmd{less file}, \cmd{head -n 20 file}
+\end{itemize}
+
+\subsection{Search and inspect}
+\begin{itemize}
+  \item \cmd{grep -n 'pattern' file}
+  \item \cmd{grep -Rni 'pattern' .}
+  \item \cmd{find . -type f -name '*.cpp'}
+  \item \cmd{wc -l file}, \cmd{sort file}, \cmd{uniq -c file}
+  \item \cmd{diff -u old new}
+\end{itemize}
+
+\subsection{Compile and run}
+\textbf{Set up simple contest commands} in \code{\textasciitilde/.bashrc}:
+\scriptsize
+\begin{verbatim}
+alias compilejava='javac Main.java'
+alias runjava='java Main'
+alias compileg++='g++ -std=c++17 -O2 -Wall -Wextra -o main'
+alias runcpp='./main'
+\end{verbatim}
+\normalsize
+\textbf{Load them} with \cmd{source \textasciitilde/.bashrc}, then use:
+\begin{itemize}
+  \item Java: \cmd{compilejava}; then \cmd{runjava < input.txt}.
+  \item C++: \cmd{compileg++ main.cpp}; then \cmd{runcpp < input.txt}.
+  \item Save output: \cmd{runjava < input.txt > output.txt}.
+  \item Save output: \cmd{runcpp < input.txt > output.txt}.
+  \item Time a run: \cmd{time runcpp < input.txt}.
+  \item \cmd{chmod +x script.sh}; \cmd{./script.sh}
+\end{itemize}
+
+\subsection{Pipes and shell operators}
+\begin{itemize}
+  \item \cmd{cmd1 | cmd2} --- send output to the next command
+  \item \cmd{cmd > file} --- overwrite; \cmd{cmd >> file} --- append
+  \item \cmd{cmd1 \&\& cmd2} --- run the second only on success
+  \item \cmd{cmd1 || cmd2} --- run the second only on failure
+  \item \cmd{cmd1; cmd2} --- run both regardless of status
+  \item \cmd{Ctrl-C} stop; \cmd{Ctrl-D} end input; \cmd{Ctrl-L} clear
+\end{itemize}
+
+\subsection{Variables and loops}
+\begin{itemize}
+  \item \cmd{X=42}; use with \cmd{\$X}; export with \cmd{export X}
+  \item \cmd{for f in *.cpp; do echo "\$f"; done}
+  \item \cmd{while read -r line; do echo "\$line"; done < file}
+  \item \cmd{echo "text"}; \cmd{printf '\%s\textbackslash n' "\$value"}
+\end{itemize}
+
+\section{Contest workflow}
+\begin{enumerate}
+  \item Confirm the working directory with \cmd{pwd}.
+  \item Compile with warnings enabled; fix every warning you understand.
+  \item Test edge cases: empty/minimum, maximum, duplicates, overflow.
+  \item Compare output using \cmd{diff -u expected output}.
+  \item Keep source, input, and output files in a clearly named directory.
+\end{enumerate}
+
+\section{Useful environment commands}
+\begin{itemize}
+  \item \cmd{which g++}, \cmd{g++ --version}, \cmd{python3 --version}
+  \item \cmd{echo \$PATH}, \cmd{env}
+  \item \cmd{ps}, \cmd{kill PID}
+  \item \cmd{man command}, \cmd{command --help}
+\end{itemize}
+
+\section{C++ compile reminders}
+\begin{itemize}
+  \item Prefer \code{long long} for values up to about $9\times10^{18}$.
+  \item Use \code{ios::sync\_with\_stdio(false);}\\
+        \code{cin.tie(nullptr);} for fast I/O.
+  \item Compile locally with the same standard and flags used for submission.
+\end{itemize}
+
+\section{More Bash tools}
+\subsection{Redirection and files}
+\begin{itemize}
+  \item \cmd{tee output.txt} displays output and saves a copy.
+  \item \cmd{sort -n file}; \cmd{sort -rn file}; \cmd{uniq -c}.
+  \item \cmd{du -sh .}; \cmd{df -h} check disk usage and free space.
+  \item \cmd{realpath file}; \cmd{basename path}; \cmd{dirname path}.
+\end{itemize}
+
+\subsection{Permissions and processes}
+\begin{itemize}
+  \item \cmd{chmod +x script.sh} makes a script executable.
+  \item \cmd{ps aux | grep main} finds a running program.
+  \item \cmd{kill PID} stops a process; use \cmd{Ctrl-C} first.
+  \item \cmd{history}; repeat the last command with \cmd{!!}.
+\end{itemize}
+
+\subsection{Repeatable testing}
+\begin{itemize}
+  \item \cmd{for i in \{1..100\}; do ./main < in; done}
+  \item \cmd{diff -w expected output} ignores whitespace differences.
+  \item \cmd{timeout 2s ./main < input.txt} catches very slow programs.
+  \item \cmd{time -p ./main < input.txt} reports runtime.
+\end{itemize}
+
+\end{multicols}
+\newpage
+\begin{center}
+  {\Large\bfseries Java Quick Reference}
+\end{center}
+\begin{multicols}{2}
+
+\section{Java}
+\subsection{Compile and run}
+\begin{itemize}
+  \item File must be named \code{Main.java}; class must be \code{Main}.
+  \item \cmd{complilejava Main.java}; \cmd{runjava Main}
+  \item Run with redirected input and output:
+    \cmd{java Main < input.txt > output.txt}
+\end{itemize}
+
+\end{multicols}
+
+\subsection{Fast input template}
+\begin{itemize}
+  \item \code{BufferedReader} and \code{StringTokenizer} avoid the overhead of \code{Scanner}.
+  \item Buffer output with \code{StringBuilder} or \code{PrintWriter}.
+\end{itemize}
+\begin{framed}
+\noindent\textbf{FastReader.java}\par\smallskip
+\scriptsize
+\setlength{\baselineskip}{7.2pt}
+\begin{verbatim}
+// FastReader class for efficient input
+static class FastReader {
+  
+    // BufferedReader to read input
+    BufferedReader b;
+  
+    // StringTokenizer to tokenize input
+    StringTokenizer s; 
+
+    // Constructor to initialize BufferedReader
+    public FastReader() {
+        b = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    // Method to read the next token as a string
+    String next() {
+        while (s == null || !s.hasMoreElements()) {
+            try {
+                s = new StringTokenizer(b.readLine());
+            } catch (IOException e) {
+                e.printStackTrace(); 
+            }
+        }
+        return s.nextToken();
+    }
+
+    // Method to read the next token as an integer
+    int nextInt() { 
+        return Integer.parseInt(next()); 
+    }
+
+    // Method to read the next token as a long
+    long nextLong() { 
+        return Long.parseLong(next()); 
+    }
+
+    // Method to read the next token as a double
+    double nextDouble() { 
+        return Double.parseDouble(next()); 
+    }
+
+    // Method to read the next line as a string
+    String nextLine() {
+        String str = "";
+        try {
+            if (s.hasMoreTokens()) {
+                str = s.nextToken("\n");
+            } else {
+                str = b.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); 
+        }
+        return str;
+  }
+}
+\end{verbatim}
+\end{framed}
+
+\subsection{Fast output}
+\begin{itemize}
+  \item Build all output, then print once:
+\end{itemize}
+\begin{framed}
+\footnotesize
+\begin{verbatim}
+StringBuilder out = new StringBuilder();
+out.append(answer).append('\n');
+out.append(value).append(' ').append(other).append('\n');
+System.out.print(out);
+\end{verbatim}
+\end{framed}
+\begin{itemize}
+  \item Or use \code{PrintWriter out = new PrintWriter(System.out);}
+  \item Finish with \code{out.println(answer); out.flush();}.
+\end{itemize}
+
+\begin{multicols}{2}
+\subsection{Common utilities and pitfalls}
+\begin{itemize}
+  \item Sort arrays: \code{Arrays.sort(a)}.
+    Sort lists: \code{Collections.sort(list)}.
+  \item Lists: \code{ArrayList<Integer>}; maps:
+    \code{HashMap<K,V>}; sets: \code{HashSet<T>}.
+  \item Priority queue: \code{PriorityQueue<Integer> pq}
+  \item Use \code{long}; integer division truncates, so cast before division.
+  \item Max-heap: \code{new PriorityQueue<>}\\
+    \code{(Collections.reverseOrder())}.
+  \item Use \code{Math.floorMod(a, m)} for a nonnegative remainder.
+\end{itemize}
+
+\end{multicols}
+\begin{center}
+  {\Large\bfseries Graph Theory Algorithms}
+\end{center}
+\begin{multicols}{2}
+
+\section{Graph representation}
+\begin{itemize}
+  \item Adjacency list: \code{List<Integer>[] g}.
+  \item Weighted edge: \code{class Edge \{ int to, w; \}}.
+  \item Undirected edge $(u,v)$: add both \code{u -> v} and \code{v -> u}.
+  \item Store vertices as $0,\ldots,n-1$ and use a \code{visited} array.
+\end{itemize}
+
+\section{Traversal}
+\begin{itemize}
+  \item \textbf{BFS:} shortest paths in an unweighted graph.
+    Use a queue; time $O(V+E)$.
+  \item \textbf{DFS:} connectivity, components, cycle checks, and ordering.
+    Time $O(V+E)$.
+  \item For a bipartite check, color each newly discovered vertex with
+    the opposite color; a same-color edge is a contradiction.
+\end{itemize}
+
+\section{Shortest paths}
+\begin{itemize}
+  \item \textbf{Dijkstra:} nonnegative weights; priority queue;
+    $O((V+E)\log V)$.
+  \item \textbf{0--1 BFS:} weights only $0$ or $1$; deque; $O(V+E)$.
+  \item \textbf{Bellman--Ford:} handles negative edges and detects negative
+    cycles; $O(VE)$.
+  \item \textbf{Floyd--Warshall:} all pairs; $O(V^3)$ and $O(V^2)$ memory.
+  \item Use a large \code{INF}; never add to \code{INF} without checking.
+\end{itemize}
+
+\section{Minimum spanning tree}
+\begin{itemize}
+  \item \textbf{Kruskal:} sort edges, add if endpoints are in different
+    DSU sets; $O(E\log E)$.
+  \item \textbf{Prim:} grow from one vertex with a min-heap;
+    $O((V+E)\log V)$ with adjacency lists.
+  \item DSU operations: path compression and union by size/rank are nearly
+    constant amortized time.
+\end{itemize}
+
+\section{Directed graphs}
+\begin{itemize}
+  \item \textbf{Topological sort:} DAG ordering. Kahn's algorithm repeatedly
+    removes indegree-zero vertices; $O(V+E)$.
+  \item If fewer than $V$ vertices are removed, the graph contains a cycle.
+  \item \textbf{SCCs:} Kosaraju uses DFS on the graph and its reverse;
+    Tarjan finds SCCs in $O(V+E)$.
+\end{itemize}
+
+\section{Useful reminders}
+\begin{itemize}
+  \item A tree with $V$ vertices has exactly $V-1$ edges.
+  \item Connected undirected graph: DFS/BFS reaches every vertex.
+  \item A connected graph has an Euler circuit iff every vertex has even
+    degree; it has an Euler path iff exactly zero or two have odd degree.
+  \item For a tree, the diameter can be found with two BFS/DFS runs.
+\end{itemize}
+
+\end{multicols}
+
+\vfill
+\hrule
+\small
+\textbf{Printing note:} This sheet is intentionally compact and uses only standard
+LaTeX packages. Confirm the current ICPC NENA rules for permitted reference
+materials, page count, paper size, and annotations before bringing it to a contest.
+
+\end{document}
