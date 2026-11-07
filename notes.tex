@@ -121,6 +121,33 @@ alias runcpp='./main'
   \item Compile locally with the same standard and flags used for submission.
 \end{itemize}
 
+\subsection{Fast C++ input/output template}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    vector<long long> a(n);
+    for (long long& x : a) cin >> x;
+
+    // Solve the problem here.
+    for (int i = 0; i < n; ++i) {
+        if (i) cout << ' ';
+        cout << a[i];
+    }
+    cout << '\n';
+    return 0;
+}
+\end{verbatim}
+\end{framed}
+
 \section{More Bash tools}
 \subsection{Redirection and files}
 \begin{itemize}
@@ -405,6 +432,291 @@ static int[][] gridBFS(char[][] grid, int sr, int sc) {
 \newpage
 \begin{multicols}{2}
 
+\section{Topological sort}
+Kahn's algorithm repeatedly removes zero-in-degree vertices.
+It runs in $O(n+m)$ time and returns an empty result if a cycle exists.
+
+\subsection{C++17}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+// Returns an empty vector if a cycle is detected
+vector<int> topoSort(int n, const vector<vector<int>>& adj) {
+    vector<int> in_degree(n, 0);
+
+    // 1. Calculate in-degrees
+    for (int u = 0; u < n; u++) {
+        for (int v : adj[u]) {
+            in_degree[v]++;
+        }
+    }
+    // 2.asks for the lexicographically smallest ordering
+    // priority_queue<int, vector<int>, greater<int>> q;
+    queue<int> q;
+
+    for (int i = 0; i < n; i++) {
+        if (in_degree[i] == 0) q.push(i);
+    }
+
+    vector<int> order;
+    while (!q.empty()) {
+        int u = q.front(); // Use q.top() if using priority_queue
+        q.pop();
+        order.push_back(u);
+
+        for (int v : adj[u]) {
+            in_degree[v]--;
+            if (in_degree[v] == 0) {
+                q.push(v);
+            }
+        }
+    }
+
+    // 3. Cycle Detection
+    if (order.size() != n) return {}; // Cycle exists, no valid sort
+
+    return order;
+}
+\end{verbatim}
+\end{framed}
+
+\subsection{Java}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+import java.util.*;
+
+public class TopoSort {
+
+    // Returns an empty list if a cycle is detected
+    static List<Integer> topoSort(int n, List<Integer>[] adj) {
+        int[] inDegree = new int[n];
+
+        // 1. Calculate in-degrees
+        for (int u = 0; u < n; u++) {
+            for (int v : adj[u]) {
+                inDegree[v]++;
+            }
+        }
+
+        // 2. asks for the lexicographically smallest ordering.
+        // Queue<Integer> q = new PriorityQueue<>();
+        Queue<Integer> q = new LinkedList<>();
+
+        for (int i = 0; i < n; i++) {
+            if (inDegree[i] == 0) q.add(i);
+        }
+
+        List<Integer> order = new ArrayList<>();
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            order.add(u);
+
+            for (int v : adj[u]) {
+                inDegree[v]--;
+                if (inDegree[v] == 0) {
+                    q.add(v);
+                }
+            }
+        }
+
+        // 3. Cycle Detection
+        if (order.size() != n) return new ArrayList<>(); // Cycle exists
+
+        return order;
+    }
+}
+\end{verbatim}
+\end{framed}
+
+\end{multicols}
+\newpage
+\begin{multicols}{2}
+
+\section{Disjoint set union (DSU)}
+DSU maintains connected components with fast merge and representative
+queries. Path compression and union by size make each operation
+$O(\alpha(n))$ amortized, which is effectively constant in contest problems.
+
+\subsection{C++17}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+#include <algorithm>
+#include <numeric>
+#include <vector>
+
+using namespace std;
+
+struct DSU {
+    vector<int> parent, sz;
+
+    DSU(int n) {
+        parent.resize(n);
+        sz.assign(n, 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]); // Path compression
+    }
+
+    bool unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i == root_j) return false;
+
+        // Union by size
+        if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+        parent[root_j] = root_i;
+        sz[root_i] += sz[root_j];
+        return true;
+    }
+
+    int getSize(int i) {
+        return sz[find(i)];
+    }
+};
+\end{verbatim}
+\end{framed}
+
+\subsection{Java}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+class DSU {
+    int[] parent, sz;
+
+    public DSU(int n) {
+        parent = new int[n];
+        sz = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            sz[i] = 1;
+        }
+    }
+
+    public int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]); // Path compression
+    }
+
+    public boolean unite(int i, int j) {
+        int rootI = find(i);
+        int rootJ = find(j);
+        if (rootI == rootJ) return false;
+
+        // Union by size
+        if (sz[rootI] < sz[rootJ]) {
+            int temp = rootI; rootI = rootJ; rootJ = temp;
+        }
+        parent[rootJ] = rootI;
+        sz[rootI] += sz[rootJ];
+        return true;
+    }
+}
+\end{verbatim}
+\end{framed}
+
+\end{multicols}
+\newpage
+\begin{multicols}{2}
+
+\section{String hashing}
+Polynomial rolling hash compares substrings in $O(1)$ after $O(n)$
+preprocessing. Double hashing uses two moduli to greatly reduce collisions.
+The intervals below are 0-indexed and inclusive.
+
+\subsection{C++17}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+#include <string>
+#include <vector>
+
+using namespace std;
+
+struct StringHash {
+    long long MOD1 = 1e9 + 7, MOD2 = 1e9 + 9;
+    long long BASE1 = 313, BASE2 = 317;
+    vector<long long> hash1, hash2, p1, p2;
+    int n;
+
+    StringHash(const string& s) {
+        n = s.length();
+        hash1.assign(n + 1, 0); hash2.assign(n + 1, 0);
+        p1.assign(n + 1, 1); p2.assign(n + 1, 1);
+
+        for (int i = 0; i < n; i++) {
+            hash1[i + 1] = (hash1[i] * BASE1 + s[i]) % MOD1;
+            hash2[i + 1] = (hash2[i] * BASE2 + s[i]) % MOD2;
+            p1[i + 1] = (p1[i] * BASE1) % MOD1;
+            p2[i + 1] = (p2[i] * BASE2) % MOD2;
+        }
+    }
+
+    // Combined hash for substring [L, R] (0-indexed, inclusive)
+    long long getHash(int L, int R) {
+        long long h1 = (hash1[R + 1] -
+            (hash1[L] * p1[R - L + 1]) % MOD1 + MOD1) % MOD1;
+        long long h2 = (hash2[R + 1] -
+            (hash2[L] * p2[R - L + 1]) % MOD2 + MOD2) % MOD2;
+        return (h1 << 32) | h2;
+    }
+};
+
+// StringHash sh("abracadabra");
+// sh.getHash(0, 3) == sh.getHash(7, 10)  // "abra" == "abra"
+\end{verbatim}
+\end{framed}
+
+\subsection{Java}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+public class StringHash {
+    long MOD1 = (long) 1e9 + 7, MOD2 = (long) 1e9 + 9;
+    long BASE1 = 313, BASE2 = 317;
+    long[] hash1, hash2, p1, p2;
+    int n;
+
+    public StringHash(String s) {
+        n = s.length();
+        hash1 = new long[n + 1]; hash2 = new long[n + 1];
+        p1 = new long[n + 1]; p2 = new long[n + 1];
+        p1[0] = 1; p2[0] = 1;
+
+        for (int i = 0; i < n; i++) {
+            hash1[i + 1] = (hash1[i] * BASE1 + s.charAt(i)) % MOD1;
+            hash2[i + 1] = (hash2[i] * BASE2 + s.charAt(i)) % MOD2;
+            p1[i + 1] = (p1[i] * BASE1) % MOD1;
+            p2[i + 1] = (p2[i] * BASE2) % MOD2;
+        }
+    }
+
+    // Combined hash for substring [L, R] (0-indexed, inclusive)
+    public long getHash(int L, int R) {
+        long h1 = (hash1[R + 1] -
+            (hash1[L] * p1[R - L + 1]) % MOD1 + MOD1) % MOD1;
+        long h2 = (hash2[R + 1] -
+            (hash2[L] * p2[R - L + 1]) % MOD2 + MOD2) % MOD2;
+        return (h1 << 32) | h2;
+    }
+}
+\end{verbatim}
+\end{framed}
+
+\end{multicols}
+\newpage
+\begin{multicols}{2}
+
 \section{Fenwick tree}
 A Fenwick tree (BIT) stores prefix sums with point updates.
 Both operations run in $O(\log n)$ time and use $O(n)$ memory.
@@ -575,58 +887,58 @@ long long lastTrue(long long lo, long long hi, F ok) {
 \end{verbatim}
 \end{framed}
 
-    \section{Bitmask DP}
-    Bitmask DP stores a subset of visited items in a binary mask. For TSP,
-    \code{dp[mask][pos]} is the best cost after visiting \code{mask} and ending
-    at \code{pos}; time is $O(N^2 2^N)$ and memory is $O(N2^N)$.
+\section{Bitmask DP}
+Bitmask DP stores a subset of visited items in a binary mask. For TSP,
+\code{dp[mask][pos]} is the best cost after visiting \code{mask} and ending
+at \code{pos}; time is $O(N^2 2^N)$ and memory is $O(N2^N)$.
 
-    \subsection{C++17}
-    \begin{framed}
-    \scriptsize
-    \begin{verbatim}
-    const int INF = 1e9;
-    int N, dist[20][20], memo[1 << 18][18];
+\subsection{C++17}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+const int INF = 1e9;
+int N, dist[20][20], memo[1 << 18][18];
 
-    int tsp(int mask, int pos) {
-        if (mask == (1 << N) - 1) return dist[pos][0];
-        int& ans = memo[mask][pos];
-        if (ans != -1) return ans;
-        ans = INF;
-        for (int nxt = 0; nxt < N; ++nxt) {
-            if ((mask & (1 << nxt)) == 0) {
-                ans = min(ans, dist[pos][nxt] +
-                               tsp(mask | (1 << nxt), nxt));
-            }
+int tsp(int mask, int pos) {
+    if (mask == (1 << N) - 1) return dist[pos][0];
+    int& ans = memo[mask][pos];
+    if (ans != -1) return ans;
+    ans = INF;
+    for (int nxt = 0; nxt < N; ++nxt) {
+        if ((mask & (1 << nxt)) == 0) {
+            ans = min(ans, dist[pos][nxt] +
+                           tsp(mask | (1 << nxt), nxt));
         }
-        return ans;
     }
-    \end{verbatim}
-    \end{framed}
+    return ans;
+}
+\end{verbatim}
+\end{framed}
 
-    \subsection{Java}
-    \begin{framed}
-    \scriptsize
-    \begin{verbatim}
-    import java.util.Arrays;
-    static final int INF = (int) 1e9;
-    static int N, dist[][], memo[][];
+\subsection{Java}
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+import java.util.Arrays;
+static final int INF = (int) 1e9;
+static int N, dist[][], memo[][];
 
-    static int tsp(int mask, int pos) {
-        if (mask == (1 << N) - 1) return dist[pos][0];
-        if (memo[mask][pos] != -1) return memo[mask][pos];
-        int ans = INF;
-        for (int nxt = 0; nxt < N; ++nxt) {
-            if ((mask & (1 << nxt)) == 0) {
-                ans = Math.min(ans, dist[pos][nxt] +
-                               tsp(mask | (1 << nxt), nxt));
-            }
+static int tsp(int mask, int pos) {
+    if (mask == (1 << N) - 1) return dist[pos][0];
+    if (memo[mask][pos] != -1) return memo[mask][pos];
+    int ans = INF;
+    for (int nxt = 0; nxt < N; ++nxt) {
+        if ((mask & (1 << nxt)) == 0) {
+            ans = Math.min(ans, dist[pos][nxt] +
+                           tsp(mask | (1 << nxt), nxt));
         }
-        return memo[mask][pos] = ans;
     }
-    \end{verbatim}
-    \end{framed}
+    return memo[mask][pos] = ans;
+}
+\end{verbatim}
+\end{framed}
 
-    \end{multicols}
+\end{multicols}
 \newpage
 \begin{multicols}{2}
 
